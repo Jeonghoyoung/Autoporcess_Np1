@@ -192,24 +192,30 @@ class NaverAutomationApp(QtWidgets.QWidget):
         
         while True:
             # 카페 목록 요소들 찾기
-            cafe_elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#main-area > div.cafe-list > ul > li')))
+            cafe_elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.mycafe_list .cafe_info a')))
             
             for cafe in cafe_elements:
                 try:
-                    cafe_name = cafe.find_element(By.CSS_SELECTOR, 'div.info > p.cafe-name > a').text
-                    cafe_url = cafe.find_element(By.CSS_SELECTOR, 'div.info > p.cafe-name > a').get_attribute('href')
+                    cafe_name = cafe.text
+                    cafe_url = cafe.get_attribute('href')
                     self.cafe_list.append((cafe_name, cafe_url))
                 except:
                     continue
             
             # 다음 페이지 확인
             try:
-                next_button = driver.find_element(By.CSS_SELECTOR, 'div.prev-next > a.on + a')
-                next_button.click()
-                time.sleep(2)
-            except:
+                # 다음 페이지 버튼 찾기 및 클릭
+                next_button = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, '.SectionPagination .page_item:not(.isActive)'))
+                )
+                if next_button.is_displayed() and next_button.is_enabled():
+                    next_button.click()
+                    time.sleep(random.uniform(1.5, 2.5))  # 랜덤 대기 시간 추가
+                else:
+                    break
+            except Exception as e:
+                print(f"다음 페이지 이동 중 오류 발생: {str(e)}")
                 break
-                
         # 기본 프레임으로 복귀
         driver.switch_to.default_content()
 
