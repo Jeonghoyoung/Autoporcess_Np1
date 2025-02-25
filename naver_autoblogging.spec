@@ -6,7 +6,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['encodings.utf_8', 'encodings.locale'],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,7 +32,13 @@ exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch='x64',
+    target_arch='arm64',
     codesign_identity=None,
     entitlements_file=None,
+)
+app = BUNDLE(
+    exe,
+    name='naver_autoblogging.app',
+    icon=None,
+    bundle_identifier=None,
 )

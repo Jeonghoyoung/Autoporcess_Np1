@@ -8,6 +8,7 @@ import time
 import random
 
 # MAC : pyinstaller --onefile --windowed --name "네이버자동화" --target-architecture arm64 main.py
+
 # WINDOW : pyinstaller --onefile --windowed --name "네이버자동화" --target-architecture x64 main.py
 
 class NaverAutomationApp(QtWidgets.QWidget):
