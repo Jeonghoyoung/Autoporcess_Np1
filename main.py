@@ -177,7 +177,7 @@ class NaverAutomationApp(QtWidgets.QWidget):
         """카페 목록을 가져옵니다."""
         self.login_naver(driver, username, password)
         
-        # 내 카페 페이지로 이동
+        # 카페 메인으로 이동
         driver.get('https://cafe.naver.com/')
         time.sleep(2)
         
@@ -186,39 +186,54 @@ class NaverAutomationApp(QtWidgets.QWidget):
         my_cafe_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.btn_my_setting')))
         my_cafe_btn.click()
         time.sleep(2)
+        
         self.cafe_list = []
         
-        # 프레임 전환
-        driver.switch_to.frame('cafe_main')
-        
         while True:
-            # 카페 목록 요소들 찾기
-            cafe_elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.mycafe_list .cafe_info a')))
+            cafe_elements = wait.until(EC.presence_of_all_elements_located(
+                (By.CSS_SELECTOR, '.mycafe_list .cafe_info a')
+            ))
             
             for cafe in cafe_elements:
                 try:
                     cafe_name = cafe.text
+                    # '내가 쓴 글 보기:' 텍스트를 가진 요소는 건너뛰기
+                    if cafe_name == '내가 쓴 글 보기':
+                        continue
+                    
                     cafe_url = cafe.get_attribute('href')
                     self.cafe_list.append((cafe_name, cafe_url))
                 except:
                     continue
             
-            # 다음 페이지 확인
             try:
-                # 다음 페이지 버튼 찾기 및 클릭
-                next_button = WebDriverWait(driver, 5).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, '.SectionPagination .page_item:not(.isActive)'))
-                )
-                if next_button.is_displayed() and next_button.is_enabled():
-                    next_button.click()
-                    time.sleep(random.uniform(1.5, 2.5))  # 랜덤 대기 시간 추가
-                else:
+                # 페이지네이션 영역에서 모든 페이지 버튼 수집
+                pagination = driver.find_element(By.CLASS_NAME, 'SectionPagination')
+                page_buttons = pagination.find_elements(By.CSS_SELECTOR, '.page_item')
+                
+                # prev, next 버튼 제외하고 숫자 버튼만 필터링
+                number_buttons = []
+                for button in page_buttons:
+                    class_name = button.get_attribute('class')
+                    if not ('prev' in class_name.lower() or 'next' in class_name.lower()):
+                        number_buttons.append(button)
+                
+                # 현재 페이지 번호 찾기
+                current_page = int(pagination.find_element(By.CSS_SELECTOR, '.page_item.isActive').text)
+                
+                # 다음 페이지 버튼 찾아서 클릭
+                for button in number_buttons:
+                    if int(button.text) == current_page + 1:
+                        # JavaScript로 클릭 실행
+                        driver.execute_script("arguments[0].click();", button)
+                        time.sleep(random.uniform(1.5, 2.5))
+                        break
+                else:  # 다음 페이지를 찾지 못했을 경우
                     break
+                
             except Exception as e:
-                print(f"다음 페이지 이동 중 오류 발생: {str(e)}")
+                print(f"페이지네이션 종료: {str(e)}")
                 break
-        # 기본 프레임으로 복귀
-        driver.switch_to.default_content()
 
     def _process_cafe_elements(self, cafe_elements):
         """카페 요소들을 처리합니다."""

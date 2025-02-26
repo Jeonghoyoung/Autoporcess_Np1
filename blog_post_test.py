@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 def test_post_to_blog(username, password, title, content):
@@ -10,8 +12,9 @@ def test_post_to_blog(username, password, title, content):
     """
     options = webdriver.ChromeOptions()
     options.add_argument('--start-maximized')
-    driver = webdriver.Chrome(options=options)
-    
+    # driver = webdriver.Chrome(options=options)
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)    
     try:
         # 네이버 로그인
         driver.get('https://nid.naver.com/nidlogin.login')
